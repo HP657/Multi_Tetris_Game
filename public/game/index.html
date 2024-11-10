@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="game/css/style.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="game-text">
+            <span>게임종료</span>
+            <button>다시시작</button>
+        </div>
+        <div class="score">0</div>
+        <div class="playground">
+            <ul></ul>
+        </div>
+        <div class="name-input">
+            <label for="player-name">이름을 입력해주세요:</label>
+            <input type="text" id="player-name" placeholder="이름" />
+            <button id="start-game">입력</button>
+        </div>
+    </div>
+    <script src="game/js/tetris.js" defer type="module"></script>
+</body>
+
+</html>

@@ -1,0 +1,112 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.game-text {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  left: 0;
+  top: 0;
+  color: #fff;
+  font-size: 50px;
+}
+
+.game-text > button {
+  padding: 0.5rem 1rem;
+  background: salmon;
+  columns: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+}
+
+.score {
+  text-align: center;
+  font-size: 36px;
+  margin: 2rem;
+}
+
+.playground > ul {
+  border: 1px solid #333;
+  width: 250px;
+  margin: 0 auto;
+}
+
+.playground > ul > li {
+  width: 100%;
+  height: 25px;
+}
+
+.playground > ul > li > ul {
+  display: flex;
+}
+
+.playground > ul > li > ul > li {
+  width: 25px;
+  height: 25px;
+  outline: 1px solid #ccc;
+}
+
+.tree {
+  background-color: #67c23a;
+}
+.bar {
+  background-color: salmon;
+}
+.zee {
+  background-color: #e6a23c;
+}
+.elLeft {
+  background-color: #8e44ad;
+}
+.elRight {
+  background-color: #16a085;
+}
+.square {
+  background-color: gray;
+}
+
+.name-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: absolute; /* 화면 전체를 덮도록 변경 */
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 1); /* 살짝 투명한 회색 배경 */
+  left: 0;
+  top: 0;
+  color: #fff;
+  font-size: 20px; /* 텍스트 크기 조정 */
+}
+
+.name-input input {
+  padding: 0.5rem;
+  font-size: 16px;
+  width: 200px;
+}
+
+.name-input button {
+  margin-top: 10px;
+  padding: 0.5rem 1rem;
+  background: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

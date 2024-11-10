@@ -1,0 +1,17 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+#player-list {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#player-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#player-list li {
+  font-size: 20px;
+}
