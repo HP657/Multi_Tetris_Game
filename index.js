@@ -25,13 +25,15 @@ wss.on("connection", (ws) => {
           })
         );
       } else if (data.action === "show_player") {
-        // 'show_player' 요청 시 현재 접속한 플레이어 목록을 응답
         ws.send(
           JSON.stringify({
             action: "show_player",
             playerList: playerList,
           })
         );
+      } else if (data.action === "start_game") {
+        console.log("게임 시작");
+        broadcastStartGame();
       }
     } catch (err) {
       console.error("메시지 처리 오류:", err);
@@ -58,7 +60,19 @@ function broadcastPlayerList() {
       client.send(
         JSON.stringify({
           action: "show_player",
-          players: playerNames,
+          playerList: playerNames,
+        })
+      );
+    }
+  });
+}
+
+function broadcastStartGame() {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          action: "start_game",
         })
       );
     }
