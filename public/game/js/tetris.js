@@ -1,20 +1,22 @@
 import BLOCKS from "./blocks.js";
 import GameWsClient from "./GameWsClient.js";
 
-// DOM elements
+// WebSocket 객체 생성 시, startGame 콜백 전달
+const ws = new GameWsClient("ws://localhost:3000", startGame);
+ws.connect();
+
+// 기존 게임 로직
 const playground = document.querySelector(".playground > ul");
 const gameText = document.querySelector(".game-text");
 const scoreDisplay = document.querySelector(".score");
-const restartButton = document.querySelector(".game-text > button");
 const nameInputDiv = document.querySelector(".name-input");
 const playerNameInput = document.querySelector("#player-name");
-const startGameButton = document.querySelector("#start-game");
+const finishNameInput = document.querySelector("#fin-name-input");
+const waitingDiv = document.querySelector(".waiting");
 
-// Game settings
 const GAME_ROWS = 20;
 const GAME_COLS = 10;
 
-// Variables
 let score = 0;
 let playerName = "";
 let duration = 500;
@@ -28,23 +30,14 @@ const movingItem = {
   left: 4,
 };
 
-// Initialize WebSocket client
-const ws = new GameWsClient("ws://localhost:3000");
-ws.connect();
-
-// Functions
 function init() {
-  score = 0; // Reset score
-  scoreDisplay.innerText = score; // Display the score
-
+  scoreDisplay.innerText = score;
   tempMovingItem = { ...movingItem };
 
-  // Create the playground grid
+  playground.innerHTML = ""; // 플레이그라운드 초기화
   for (let i = 0; i < GAME_ROWS; i++) {
     prependNewLine();
   }
-
-  // Generate the first block
   generateNewBlock();
 }
 
@@ -63,12 +56,10 @@ function renderBlocks(moveType = "") {
   const { type, direction, top, left } = tempMovingItem;
   const movingBlocks = document.querySelectorAll(".moving");
 
-  // 현재 이동 중인 블록들에 대한 처리를 제거
   movingBlocks.forEach((moving) => {
     moving.classList.remove(type, "moving");
   });
 
-  // 새로운 블록을 그리드에 렌더링
   BLOCKS[type][direction].some((block) => {
     const x = block[0] + left;
     const y = block[1] + top;
@@ -76,9 +67,7 @@ function renderBlocks(moveType = "") {
       ? playground.childNodes[y].childNodes[0].childNodes[x]
       : null;
 
-    const isAvailable = checkEmpty(target);
-
-    if (isAvailable) {
+    if (checkEmpty(target)) {
       target.classList.add(type, "moving");
     } else {
       tempMovingItem = { ...movingItem };
@@ -88,31 +77,22 @@ function renderBlocks(moveType = "") {
       }
       setTimeout(() => {
         renderBlocks("retry");
-        if (moveType === "top") {
-          seizeBlock();
-        }
+        if (moveType === "top") seizeBlock();
       }, 0);
       return true;
     }
   });
-
   movingItem.left = left;
   movingItem.top = top;
   movingItem.direction = direction;
 
-  // WebSocket을 통해 블록 이동 정보를 다른 클라이언트로 전송
-  if (ws.socket && ws.socket.readyState === WebSocket.OPEN) {
-    const message = {
+  // WebSocket을 통해 서버로 블록 이동 정보 전송
+  if (moveType !== "retry") {
+    ws.sendMessage({
       action: "move_block",
       playerName,
-      block: {
-        type: movingItem.type,
-        direction: movingItem.direction,
-        top: movingItem.top,
-        left: movingItem.left,
-      },
-    };
-    ws.sendMessage(message);
+      block: { ...movingItem },
+    });
   }
 }
 
@@ -149,12 +129,15 @@ function generateNewBlock() {
   downInterval = setInterval(() => {
     moveBlock("top", 1);
   }, duration);
+
   const blockArray = Object.entries(BLOCKS);
   const randomIndex = Math.floor(Math.random() * blockArray.length);
-  movingItem.type = blockArray[randomIndex][0];
-  movingItem.top = 0;
-  movingItem.left = 3;
-  movingItem.direction = 0;
+  Object.assign(movingItem, {
+    type: blockArray[randomIndex][0],
+    top: 0,
+    left: 3,
+    direction: 0,
+  });
   tempMovingItem = { ...movingItem };
   renderBlocks();
 }
@@ -169,8 +152,7 @@ function moveBlock(moveType, amount) {
 }
 
 function changeDirection() {
-  const direction = tempMovingItem.direction;
-  tempMovingItem.direction = direction === 3 ? 0 : direction + 1;
+  tempMovingItem.direction = (tempMovingItem.direction + 1) % 4;
   renderBlocks();
 }
 
@@ -178,14 +160,18 @@ function dropBlock() {
   clearInterval(downInterval);
   downInterval = setInterval(() => {
     moveBlock("top", 1);
-  }, 10);
+  }, 25);
 }
 
 function showGameoverText() {
   gameText.style.display = "flex";
 }
 
-// Event handling
+function showWaitingPage() {
+  nameInputDiv.style.display = "none";
+  waitingDiv.style.display = "flex";
+}
+
 document.addEventListener("keydown", (event) => {
   switch (event.keyCode) {
     case 39:
@@ -208,20 +194,23 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-restartButton.addEventListener("click", () => {
-  playground.innerHTML = "";
-  gameText.style.display = "none";
-  init();
-});
-
-startGameButton.addEventListener("click", () => {
-  playerName = playerNameInput.value;
+// 게임 시작 시 호출되는 함수
+function startGame() {
   if (playerName) {
-    ws.add_player(playerName);
-    nameInputDiv.style.display = "none";
+    console.log("게임이 시작됩니다!");
+    waitingDiv.style.display = "none";
     playground.innerHTML = "";
     gameText.style.display = "none";
     init();
+  }
+}
+
+// 이름 입력 후 서버에 전달
+finishNameInput.addEventListener("click", () => {
+  playerName = playerNameInput.value;
+  if (playerName) {
+    ws.add_player(playerName);
+    showWaitingPage();
   } else {
     alert("Please enter your name.");
   }

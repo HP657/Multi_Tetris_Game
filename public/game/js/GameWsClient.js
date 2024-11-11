@@ -1,7 +1,8 @@
 class GameWsClient {
-  constructor(serverUrl) {
+  constructor(serverUrl, onGameStartCallback) {
     this.serverUrl = serverUrl;
     this.socket = null;
+    this.onGameStartCallback = onGameStartCallback;
   }
 
   connect() {
@@ -9,9 +10,6 @@ class GameWsClient {
 
     this.socket.onopen = () => {
       console.log("WebSocket 연결됨");
-
-      // WebSocket 연결 후, 일정 시간마다 서버에 요청을 보내기
-      this.startAutoRequest();
     };
 
     this.socket.onmessage = (event) => {
@@ -19,6 +17,13 @@ class GameWsClient {
 
       if (data.action === "player_connected") {
         console.log("접속");
+      } else if (data.action === "start_game") {
+        console.log("게임 시작 메시지 수신");
+
+        // 게임 시작 콜백 호출
+        if (this.onGameStartCallback) {
+          this.onGameStartCallback();
+        }
       }
     };
 
@@ -31,28 +36,11 @@ class GameWsClient {
     };
   }
 
-  startAutoRequest() {
-    // 일정 시간마다 서버에 요청을 보내는 코드 (예: 5초마다 요청)
-    this.autoRequestInterval = setInterval(() => {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        const message = {
-          action: "get_game_status", // 서버에 요청할 액션
-        };
-        this.sendMessage(message);
-      }
-    }, 5000); // 5초마다 요청
-  }
-
-  stopAutoRequest() {
-    clearInterval(this.autoRequestInterval); // 요청 중지
-  }
-
   add_player(name) {
     const message = {
       action: "add_player",
       playerName: name,
     };
-
     this.sendMessage(message);
   }
 
