@@ -9,19 +9,15 @@ class AdminWsClient {
 
     this.socket.onopen = () => {
       console.log("WebSocket 연결됨");
-      // 서버에 초기 show_player 요청을 보냅니다.
-      this.socket.send(
-        JSON.stringify({
-          action: "show_player",
-        })
-      );
+      this.requestPlayerList(); // 연결 시 서버에 플레이어 목록 요청
     };
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("받은 메시지:", data);
 
       if (data.action === "show_player") {
-        this.updatePlayerList(data.players);
+        this.updatePlayerList(data.playerList); // 서버에서 받은 플레이어 목록 업데이트
       }
     };
 
@@ -43,16 +39,29 @@ class AdminWsClient {
     }
   }
 
+  // 서버에 플레이어 목록 요청
+  requestPlayerList() {
+    // 서버에 'show_player' 액션 메시지 보내기
+    this.sendMessage({ action: "show_player" });
+  }
+
   // 플레이어 목록 업데이트
   updatePlayerList(players) {
+    console.log("플레이어 목록 업데이트:", players);
+
     const playerListElement = document.getElementById("admin-player-list");
     playerListElement.innerHTML = ""; // 기존 목록 비우기
 
-    players.forEach((player) => {
-      const li = document.createElement("li");
-      li.textContent = player;
-      playerListElement.appendChild(li);
-    });
+    // players가 배열인지 확인하고 처리
+    if (Array.isArray(players)) {
+      players.forEach((player) => {
+        const li = document.createElement("li");
+        li.textContent = player;
+        playerListElement.appendChild(li);
+      });
+    } else {
+      console.error("players가 배열이 아닙니다:", players);
+    }
   }
 }
 
